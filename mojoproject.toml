@@ -4,7 +4,7 @@ channels = ["conda-forge", "https://conda.modular.com/max", "file:////Users/mikh
 description = "Add a short description here"
 name = "mojo-rustls"
 platforms = ["osx-arm64"]
-version = "0.1.0"
+version = "0.1.1"
 
 [tasks]
 tests = "bash scripts/tests.sh"
@@ -14,3 +14,4 @@ publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_A
 
 [dependencies]
 max = ">=24.5.0,<25"
+mojo-rustls-ffi = ">=0.1.0,<0.2" # self dependency just for local testing

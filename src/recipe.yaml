@@ -5,17 +5,18 @@ context:
 
 package:
   name: "mojo-rustls-ffi"
-  version: 0.1.0
+  version: 0.1.1
 
 source:
-  # - path: ./librustls.dylib
   - path: ../LICENSE
 
 build:
   script:
     - mkdir -p ${PREFIX}/share/mojo-rustls-ffi
     - git clone --depth=1 git@github.com:rustls/rustls-ffi.git
-    - cd rustls-ffi && cargo cinstall --library-type=cdylib --destdir=${PREFIX}/share/mojo-rustls-ffi/librustls.dylib
+    - cd rustls-ffi && cargo cinstall --library-type=cdylib --destdir=./output
+    - ls -la output/usr/local/lib
+    - cp output/usr/local/lib/librustls.dylib ${PREFIX}/share/mojo-rustls-ffi/librustls.dylib
     - cd .. && rm -R rustls-ffi
 
 about:
