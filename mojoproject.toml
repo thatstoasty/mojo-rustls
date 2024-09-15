@@ -1,0 +1,16 @@
+[project]
+authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
+channels = ["conda-forge", "https://conda.modular.com/max", "file:////Users/mikhailtavarez/.rattler/output"]
+description = "Add a short description here"
+name = "mojo-rustls"
+platforms = ["osx-arm64"]
+version = "0.1.0"
+
+[tasks]
+tests = "bash scripts/tests.sh"
+examples = "bash scripts/examples.sh"
+build = "rattler-build build -r src -c https://repo.prefix.dev/mojo-community -c https://conda.modular.com/max -c conda-forge --skip-existing=all"
+publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_API_KEY" } }
+
+[dependencies]
+max = ">=24.5.0,<25"
