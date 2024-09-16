@@ -36,7 +36,7 @@ environments:
       - conda: https://conda.modular.com/max/osx-arm64/max-python-24.5.0-3.12release.conda
       - conda: https://conda.modular.com/max/noarch/mblack-24.5.0-release.conda
       - conda: https://conda.modular.com/max/noarch/mojo-jupyter-24.5.0-release.conda
-      - conda: file:///Users/mikhailtavarez/.rattler/output/osx-arm64/mojo-rustls-ffi-0.1.1-h60d57d3_0.conda
+      - conda: file:///Users/mikhailtavarez/.rattler/output/osx-arm64/mojo-rustls-0.1.1-h60d57d3_0.conda
       - conda: https://conda.anaconda.org/conda-forge/noarch/mypy_extensions-1.0.0-pyha770c72_0.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/ncurses-6.5-h7bae524_1.conda
       - conda: https://conda.anaconda.org/conda-forge/osx-arm64/numpy-1.26.4-py312h8442bc7_0.conda
@@ -517,18 +517,18 @@ packages:
   size: 21595
   timestamp: 1726172475911
 - kind: conda
-  name: mojo-rustls-ffi
+  name: mojo-rustls
   version: 0.1.1
   build: h60d57d3_0
   subdir: osx-arm64
-  url: file:///Users/mikhailtavarez/.rattler/output/osx-arm64/mojo-rustls-ffi-0.1.1-h60d57d3_0.conda
-  sha256: afd80198be1eafdfab5b23b8d7b12bf5fae1090dec45fe0ced77946817ea2911
-  md5: e4abcc9984d79b797dbde911dbf9b731
+  url: file:///Users/mikhailtavarez/.rattler/output/osx-arm64/mojo-rustls-0.1.1-h60d57d3_0.conda
+  sha256: 0f4c7da11d276305c771fb785eeb658261cc49c03f68644195a20ceb529d8d4d
+  md5: 261d5199c07bdab2dd688e04a7340d3f
   arch: arm64
   platform: osx
   license: MIT
-  size: 1170952
-  timestamp: 1726443386227
+  size: 1172398
+  timestamp: 1726512179540
 - kind: conda
   name: mypy_extensions
   version: 1.0.0

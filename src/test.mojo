@@ -22,14 +22,14 @@ import os
 from sys import exit
 from gojo.net import dial_tcp
 
-fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: String, path: String) -> None:
-    var rconn = UnsafePointer[Connection]()
-    var connection = dial_tcp("tcp", host, port)
+# fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: String, path: String) -> None:
+#     var rconn = UnsafePointer[Connection]()
+#     var connection = dial_tcp("tcp", host, port)
 
-    var result = new_client_connection(client_config, host.unsafe_ptr(), UnsafePointer.address_of(rconn))
-    if result != 7000:
-        print("failed to build cert store, Result: ", result)
-        exit(1)
+#     var result = new_client_connection(client_config, host.unsafe_ptr(), UnsafePointer.address_of(rconn))
+#     if result != 7000:
+#         print("failed to build cert store, Result: ", result)
+#         exit(1)
     
 
 # int
@@ -82,8 +82,8 @@ fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: St
 #     }
 #     free(conn);
 #   }
-  return ret;
-}
+#   return ret;
+# }
 
 
 fn main():
@@ -134,10 +134,10 @@ fn main():
     var host = "www.google.com"
     var port = "443"
     var path = "/"
-    result = do_request(client_config, host, port, path)
-    if result != 7000:
-        print("failed to build client config, Result: ", result)
-        exit(1)
+    # result = do_request(client_config, host, port, path)
+    # if result != 7000:
+    #     print("failed to build client config, Result: ", result)
+    #     exit(1)
 
     # var client_config = new_client_config()
     # var rconn = UnsafePointer[Connection]()

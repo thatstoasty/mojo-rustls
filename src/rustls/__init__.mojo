@@ -2,7 +2,7 @@ from sys import ffi
 import os
 
 alias RustlsResult = Int
-var _rustls = ffi.DLHandle(os.getenv("CONDA_PREFIX") + "/share/mojo-rustls-ffi/librustls.dylib", ffi.RTLD.LAZY)
+var _rustls = ffi.DLHandle(os.getenv("CONDA_PREFIX") + "/share/mojo-rustls/librustls.dylib", ffi.RTLD.LAZY)
 
 @value
 struct SliceBytes():
