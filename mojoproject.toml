@@ -1,6 +1,6 @@
 [project]
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max", "file:////Users/mikhailtavarez/.rattler/output", "https://repo.prefix.dev/mojo-community"]
+channels = ["conda-forge", "https://conda.modular.com/max", "https://repo.prefix.dev/mojo-community"]
 description = "Add a short description here"
 name = "mojo-rustls"
 platforms = ["osx-arm64"]
@@ -14,5 +14,5 @@ publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_A
 
 [dependencies]
 max = ">=24.5.0,<25"
-mojo-rustls = ">=0.1.1,<0.2" # self dependency just for local testing
+# mojo-rustls = ">=0.1.1,<0.2" # self dependency just for local testing
 gojo = ">=0.1.9,<0.2"
