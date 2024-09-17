@@ -1,36 +1,73 @@
 from rustls import (
-    new_root_cert_store_builder,
-    load_roots_from_file,
     RustlsClientConfig,
-    new_client_connection,
-    new_client_config_builder,
     Connection,
-    build_root_cert_store_builder,
     RootCertStore,
-    new_web_pki_server_cert_verifier_builder,
-    build_web_pki_server_cert_verifier_builder,
     ServerCertVerifier,
-    client_config_builder_set_server_verifier,
     ClientConfigBuilder,
     ClientConfig,
-    client_config_builder_set_alpn_protocols,
     SliceBytes,
+    RustlsResult,
+    ConnData,
+    new_root_cert_store_builder,
+    load_roots_from_file,
+    new_client_connection,
+    new_client_config_builder,
+    build_root_cert_store_builder,
+    new_web_pki_server_cert_verifier_builder,
+    build_web_pki_server_cert_verifier_builder,
+    client_config_builder_set_server_verifier,
+    client_config_builder_set_alpn_protocols,
     build_client_config_builder,
-
+    rustls_connection_set_userdata,
+    rustls_connection_set_log_callback,
 )
 import os
 from sys import exit
-from gojo.net import dial_tcp
+from memory.memory import memset
+from sys.info import sizeof
+from sys.ffi import external_call
+from lightbug_http.sys.net import create_connection
+from libc import AF_INET, SOCK_STREAM, AI_PASSIVE, to_char_ptr, socket
 
-# fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: String, path: String) -> None:
-#     var rconn = UnsafePointer[Connection]()
-#     var connection = dial_tcp("tcp", host, port)
+fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: String, path: String) raises -> RustlsResult:
+    var rconn = UnsafePointer[Connection]()
+    var ret: RustlsResult = 1
+    var fd = socket(AF_INET, SOCK_STREAM, 0)
+    var connection = create_connection(fd, host, atol(port))
+    if fd < 0:
+        print("Failed to create connection")
+        return ret
 
-#     var result = new_client_connection(client_config, host.unsafe_ptr(), UnsafePointer.address_of(rconn))
-#     if result != 7000:
-#         print("failed to build cert store, Result: ", result)
-#         exit(1)
-    
+    var result = new_client_connection(client_config, host.unsafe_ptr(), UnsafePointer.address_of(rconn))
+    if result != 7000:  # Assuming 7000 is RUSTLS_RESULT_OK
+        print("failed to create new client connection, Result: ", result)
+        return result
+
+    var conn = ConnData(rconn, fd.__int__(), "verify_arg", SliceBytes(UnsafePointer[UInt8](), 0))
+
+    rustls_connection_set_userdata(rconn, UnsafePointer[ConnData].address_of(conn))
+    # rustls_connection_set_log_callback(rconn, log_cb)
+
+    ret = send_request_and_read_response(UnsafePointer[ConnData].address_of(conn), rconn, host, path)
+    if ret != 7000:
+        return ret
+
+    # # Cleanup
+    # external_call["rustls_connection_free"](rconn)
+    # if fd > 0:
+    #     os.close(fd)
+    # if conn.data.data != None:
+    #     free(conn.data.data)
+
+    return 7000  # Assuming 7000 is RUSTLS_RESULT_OK
+
+fn log_cb(level: Int, message: String):
+    print("Log level:", level, "Message:", message)
+
+fn send_request_and_read_response(conn: UnsafePointer[ConnData], rconn: UnsafePointer[Connection], hostname: String, path: String) -> RustlsResult:
+    # Implement this function based on your requirements
+    return 7000  # Placeholder return value
+
 
 # int
 # do_request(const struct rustls_client_config *client_config,
@@ -134,10 +171,14 @@ fn main():
     var host = "www.google.com"
     var port = "443"
     var path = "/"
-    # result = do_request(client_config, host, port, path)
-    # if result != 7000:
-    #     print("failed to build client config, Result: ", result)
-    #     exit(1)
+    try:
+        result = do_request(client_config, host, port, path)
+        if result != 7000:
+            print("failed to build client config, Result: ", result)
+            exit(1)
+    except e:
+        print("Error: ", e)
+        exit(1)
 
     # var client_config = new_client_config()
     # var rconn = UnsafePointer[Connection]()

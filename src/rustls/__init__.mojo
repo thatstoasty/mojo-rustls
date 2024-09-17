@@ -105,6 +105,28 @@ fn build_client_config_builder(
         ) -> RustlsResult
     ]("rustls_client_config_builder_build")(builder, config_out)
 
+@value
+struct ConnData:
+    var rconn: UnsafePointer[Connection]
+    var fd: Int
+    var verify_arg: String
+    var data: SliceBytes
+
+fn rustls_connection_set_userdata(conn: UnsafePointer[Connection], userdata: UnsafePointer[ConnData]) -> None:
+    return _rustls.get_function[fn (UnsafePointer[Connection], UnsafePointer[ConnData]) -> None]("rustls_connection_set_userdata")(
+        conn, userdata
+    )
+
+fn rustls_connection_set_log_callback(
+    conn: UnsafePointer[Connection],
+    log_callback: fn (userdata: UnsafePointer[UInt8], params: UnsafePointer[LogParams]) -> None,
+) -> None:
+    return _rustls.get_function[
+        fn (
+            UnsafePointer[Connection], fn (userdata: UnsafePointer[UInt8], params: UnsafePointer[LogParams]) -> None
+        ) -> None
+    ]("rustls_connection_set_log_callback")(conn, log_callback)
+
 # Connection
 @value
 struct LogParams:
@@ -139,11 +161,11 @@ fn new_client_connection(
     config: UnsafePointer[ClientConfig],
     server_name: UnsafePointer[UInt8],
     conn_out: UnsafePointer[UnsafePointer[Connection]],
-) -> None:
+) -> RustlsResult:
     return _rustls.get_function[
         fn (
             UnsafePointer[ClientConfig], UnsafePointer[UInt8], UnsafePointer[UnsafePointer[Connection]]
-        ) -> None
+        ) -> RustlsResult
     ]("rustls_client_connection_new")(config, server_name, conn_out)
 
 
