@@ -16,3 +16,4 @@ publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_A
 max = ">=24.5.0,<25"
 # mojo-rustls = ">=0.1.1,<0.2" # self dependency just for local testing
 gojo = ">=0.1.9,<0.2"
+lightbug_http = "0.1.3"
