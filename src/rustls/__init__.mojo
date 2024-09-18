@@ -127,6 +127,28 @@ fn rustls_connection_set_log_callback(
         ) -> None
     ]("rustls_connection_set_log_callback")(conn, log_callback)
 
+fn rustls_connection_write(
+    conn: UnsafePointer[Connection, buf: UnsafePointer[UInt8], len: Int, written: UnsafePointer[Int]
+) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[Connection], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> RustlsResult
+    ]("rustls_connection_write")(conn, buf, len, written)
+
+fn rustls_connection_get_negotiated_ciphersuite(
+    conn: UnsafePointer[Connection]
+) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[Connection]) -> RustlsResult
+    ]("rustls_connection_get_negotiated_ciphersuite")(conn)
+
+fn rustls_connection_get_negotiated_ciphersuite_name(
+    conn: UnsafePointer[Connection]
+) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[Connection]) -> RustlsResult
+    ]("rustls_connection_get_negotiated_ciphersuite_name")(conn)
+
+
 # Connection
 @value
 struct LogParams:
