@@ -79,7 +79,6 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
     var content_length: Int = 0
     var response_complete = False
 
-    # Prepare the HTTP request
     var headers = "GET " + path + " HTTP/1.1\r\n" +
         "Host: " + hostname + "\r\n" +
         "User-Agent: Mojo\r\n" +
@@ -174,8 +173,9 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
 
 fn write_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
     var conn = userdata.bitcast[ConnData]()[]
-    print("Writing to socket: ", buf)
-    var signed_n = send(conn.fd, buf, len, 0)
+    var buf_str = buf[].__str__()
+    print("Writing to socket: ", buf_str)
+    var signed_n = send(conn.fd, buf_str.unsafe_ptr(), len, 0)
     if signed_n < 0:
         print("Error writing to socket, signed_n: ", signed_n)
         return 1
