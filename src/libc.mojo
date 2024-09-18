@@ -812,7 +812,6 @@ fn write(fildes: c_int, buf: UnsafePointer[c_void], nbyte: c_size_t) -> c_int:
         fildes, buf, nbyte
     )
 
-
 struct fd_set:
     var fds_bits: StaticTuple[Int64, 16]
 
@@ -825,16 +824,29 @@ struct fd_set:
         var word = fd // 64
         var bit = fd % 64
         self.fds_bits[word] |= (1 << bit)
+        print("Set fd", fd, "word:", word, "bit:", bit)
 
     fn clear(inout self, fd: Int):
         var word = fd // 64
         var bit = fd % 64
         self.fds_bits[word] &= ~(1 << bit)
+        print("Cleared fd", fd, "word:", word, "bit:", bit)
 
     fn is_set(self, fd: Int) -> Bool:
         var word = fd // 64
         var bit = fd % 64
-        return (self.fds_bits[word] & (1 << bit)) != 0
+        var result = (self.fds_bits[word] & (1 << bit)) != 0
+        print("Checking fd", fd, "word:", word, "bit:", bit, "result:", result)
+        return result
+
+    fn clear_all(inout self):
+        for i in range(16):
+            self.fds_bits[i] = 0
+        print("Cleared all fds")
+
+    fn print_bits(self):
+        for i in range(16):
+            print("Word", i, ":", bin(self.fds_bits[i]))
 
 struct timeval:
     var tv_sec: Int64
