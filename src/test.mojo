@@ -35,7 +35,7 @@ from memory.memory import memset
 from sys.info import sizeof
 from sys.ffi import external_call
 from lightbug_http.sys.net import create_connection
-from libc import fd_set, AF_INET, SOCK_STREAM, AI_PASSIVE, EAGAIN, EWOULDBLOCK, to_char_ptr, socket, select, timeval, read
+from libc import fd_set, AF_INET, SOCK_STREAM, AI_PASSIVE, EAGAIN, EWOULDBLOCK, to_char_ptr, socket, select, timeval, read, send
 
 alias DEMO_OK = 0
 alias DEMO_AGAIN = 1
@@ -172,10 +172,14 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
 
     return 7000
 
-alias ReadCallback = fn(UnsafePointer[UInt8], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> Int
-
-fn write_cb(buf: UnsafePointer[UInt8], len: Int) -> RustlsResult:
-    print("Write bytes: ", buf)
+fn write_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
+    var conn = userdata.bitcast[ConnData]()[]
+    print("Writing to socket: ", buf)
+    var signed_n = send(conn.fd, buf, len, 0)
+    if signed_n < 0:
+        print("Error writing to socket, signed_n: ", signed_n)
+        return 1
+    out_n[0] = signed_n
     return 0
 
 fn read_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
@@ -183,10 +187,9 @@ fn read_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, 
     var signed_n = read(conn.fd, buf, len)
     print("Read bytes: ", buf)
     if signed_n < 0:
-        # out_n.store(0)
+        out_n[0] = 0
         print("Error reading from socket")
-        # return errno()
-    # out_n.store(signed_n)
+    out_n[0] = signed_n.__int__()
     return 0
 
 fn do_read(conn: ConnData, rconn: UnsafePointer[Connection]) raises -> Int:

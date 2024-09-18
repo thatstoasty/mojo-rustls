@@ -180,10 +180,11 @@ fn rustls_connection_read_tls(
         fn (UnsafePointer[Connection], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> RustlsResult
     ]("rustls_connection_read_tls")(conn, buf, len, read)
 
+# write_cb signature: userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]
 fn rustls_connection_write_tls(
-    rconn: UnsafePointer[Connection], write_cb: fn (buf: UnsafePointer[UInt8], len: Int) -> RustlsResult, conn: UnsafePointer[ConnData], n: Int) -> RustlsResult:
+    rconn: UnsafePointer[Connection], write_cb: fn (userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int, conn: UnsafePointer[ConnData], n: Int) -> RustlsResult:
     return _rustls.get_function[
-        fn (UnsafePointer[Connection], fn (buf: UnsafePointer[UInt8], len: Int) -> RustlsResult, UnsafePointer[ConnData], Int) -> RustlsResult
+        fn (UnsafePointer[Connection], fn (userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int, UnsafePointer[ConnData], Int) -> RustlsResult
     ]("rustls_connection_write_tls")(rconn, write_cb, conn, n)
 
 fn rustls_connection_wants_read(conn: UnsafePointer[Connection]) -> Bool:
