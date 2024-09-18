@@ -862,6 +862,7 @@ fn select(
         timeout: A UnsafePointer to a timeval struct to set a timeout.
     Returns: The number of file descriptors in the sets or -1 in case of failure.
     """
+    print("selecting")
     return external_call[
         "select",
         c_int,  # FnName, RetType
