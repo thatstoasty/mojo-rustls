@@ -15,6 +15,32 @@ struct WebPkiServerCertVerifierBuilder:
     pass
 
 
+# Connection
+@value
+struct LogParams:
+    var level: UInt
+    var message: String
+
+
+struct RustlsConnection:
+    pass
+
+
+struct Connection:
+    var conn: RustlsConnection
+    var userdata: UnsafePointer[UInt8]
+    var log_callback: fn (userdata: UnsafePointer[UInt8], params: UnsafePointer[LogParams]) -> None
+
+
+# Client
+struct ClientConfig:
+    pass
+
+@value
+struct ClientConfigBuilder:
+    pass
+
+
 fn new_root_cert_store_builder() -> UnsafePointer[RootCertStoreBuilder]:
     return _rustls.get_function[fn () -> UnsafePointer[RootCertStoreBuilder]]("rustls_root_cert_store_builder_new")()
 
@@ -154,31 +180,17 @@ fn rustls_connection_read_tls(
         fn (UnsafePointer[Connection], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> RustlsResult
     ]("rustls_connection_read_tls")(conn, buf, len, read)
 
-# Connection
-@value
-struct LogParams:
-    var level: UInt
-    var message: String
+fn rustls_connection_write_tls(
+    rconn: UnsafePointer[Connection], write_cb: fn (buf: UnsafePointer[UInt8], len: Int) -> RustlsResult, conn: UnsafePointer[ConnData], n: Int) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[Connection], fn (buf: UnsafePointer[UInt8], len: Int) -> RustlsResult, UnsafePointer[ConnData], Int) -> RustlsResult
+    ]("rustls_connection_write_tls")(rconn, write_cb, conn, n)
 
+fn rustls_connection_wants_read(conn: UnsafePointer[Connection]) -> Bool:
+    return _rustls.get_function[fn (UnsafePointer[Connection]) -> Bool]("rustls_connection_wants_read")(conn)
 
-struct RustlsConnection:
-    pass
-
-
-struct Connection:
-    var conn: RustlsConnection
-    var userdata: UnsafePointer[UInt8]
-    var log_callback: fn (userdata: UnsafePointer[UInt8], params: UnsafePointer[LogParams]) -> None
-
-
-# Client
-struct ClientConfig:
-    pass
-
-@value
-struct ClientConfigBuilder:
-    pass
-
+fn rustls_connection_wants_write(conn: UnsafePointer[Connection]) -> Bool:
+    return _rustls.get_function[fn (UnsafePointer[Connection]) -> Bool]("rustls_connection_wants_write")(conn)
 
 fn new_client_config_builder() -> UnsafePointer[ClientConfigBuilder]:
     return _rustls.get_function[fn () -> UnsafePointer[ClientConfigBuilder]]("rustls_client_config_builder_new")()
