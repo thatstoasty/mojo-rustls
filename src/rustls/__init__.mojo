@@ -180,7 +180,6 @@ fn rustls_connection_read_tls(
         fn (UnsafePointer[Connection], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> RustlsResult
     ]("rustls_connection_read_tls")(conn, buf, len, read)
 
-# write_cb signature: userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]
 fn rustls_connection_write_tls(
     rconn: UnsafePointer[Connection], write_cb: fn (userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int, conn: UnsafePointer[ConnData], n: Int) -> RustlsResult:
     return _rustls.get_function[
@@ -192,6 +191,9 @@ fn rustls_connection_wants_read(conn: UnsafePointer[Connection]) -> Bool:
 
 fn rustls_connection_wants_write(conn: UnsafePointer[Connection]) -> Bool:
     return _rustls.get_function[fn (UnsafePointer[Connection]) -> Bool]("rustls_connection_wants_write")(conn)
+
+fn rustls_connection_process_new_packets(conn: UnsafePointer[Connection]) -> RustlsResult:
+    return _rustls.get_function[fn (UnsafePointer[Connection]) -> RustlsResult]("rustls_connection_process_new_packets")(conn)
 
 fn new_client_config_builder() -> UnsafePointer[ClientConfigBuilder]:
     return _rustls.get_function[fn () -> UnsafePointer[ClientConfigBuilder]]("rustls_client_config_builder_new")()

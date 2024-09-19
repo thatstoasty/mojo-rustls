@@ -28,6 +28,7 @@ from rustls import (
     rustls_connection_wants_read,
     rustls_connection_wants_write,
     rustls_connection_write_tls,
+    rustls_connection_process_new_packets,
 )
 import os
 from sys import exit
@@ -70,6 +71,7 @@ fn do_request(client_config: UnsafePointer[ClientConfig], host: String, port: St
 
 fn log_cb(level: Int, message: String):
     print("Log level:", level, "Message:", message)
+
 fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePointer[Connection], hostname: String, path: String) raises -> RustlsResult:
     var sockfd = conn.fd
     var ret: RustlsResult = 1
@@ -108,8 +110,10 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
         write_fds.clear_all()
 
         if rustls_connection_wants_read(rustls_connection):
+            print("Rustls wants read")
             read_fds.set(sockfd)
         if rustls_connection_wants_write(rustls_connection):
+            print("Rustls wants write")
             write_fds.set(sockfd)
 
         if not rustls_connection_wants_read(rustls_connection) and not rustls_connection_wants_write(rustls_connection):
@@ -125,9 +129,33 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
         if select_result == -1:
             print("Select error: ", select_result)
             return ret
+        print("Select result:", select_result)
+        print("Read fd set:", read_fds.is_set(sockfd))
+        print("Write fd set:", write_fds.is_set(sockfd))
 
-        if read_fds.is_set(sockfd):
+        var counter = 0
+        
+
+        if write_fds.is_set(sockfd):
             while True:
+                var conn_ptr = UnsafePointer[ConnData].address_of(conn)
+                counter += 1
+                var write_result = rustls_connection_write_tls(rustls_connection, write_cb, conn_ptr, n)
+                if write_result != 7000:
+                    print("Error in rustls_connection_write_tls: ", write_result)
+                    return ret
+                if write_result == DEMO_AGAIN:
+                    break
+                elif n == 0:
+                    print("Write returned 0 from rustls_connection_write_tls")
+                    break
+                if counter > 2:
+                    print("Counter exceeded 10")
+                    break
+
+        if read_fds.is_set(sockfd) or True:
+            while True:
+                print("Reading from socket")
                 var read_result = do_read(conn, rustls_connection)
                 if read_result == DEMO_AGAIN:
                     break
@@ -153,19 +181,6 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
                     response_complete = True
                     break
 
-        if write_fds.is_set(sockfd):
-            while True:
-                var conn_ptr = UnsafePointer[ConnData].address_of(conn)
-                var write_result = rustls_connection_write_tls(rustls_connection, write_cb, conn_ptr, n)
-                if write_result != 0:
-                    print("Error in rustls_connection_write_tls: ", write_result)
-                    return ret
-                if write_result == DEMO_AGAIN:
-                    break
-                elif n == 0:
-                    print("Write returned 0 from rustls_connection_write_tls")
-                    break
-
         if response_complete:
             break
 
@@ -173,17 +188,28 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
 
 fn write_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
     var conn = userdata.bitcast[ConnData]()[]
+    print("Writing to socket, length:", len)
+    print("Record type:", buf[0])
+    print("TLS version:", buf[1], buf[2])
+    print("Length:", (buf[3].__int__() << 8) | buf[4].__int__())
+    if len > 5:
+        print("Handshake type:", buf[5])
+    print("Full data:", buf)
     var buf_str = buf[].__str__()
     print("Writing to socket: ", buf_str)
     var signed_n = send(conn.fd, buf_str.unsafe_ptr(), len, 0)
+    # var signed_n = send(conn.fd, buf, len, 0)
     if signed_n < 0:
-        print("Error writing to socket, signed_n: ", signed_n)
-        return 1
+        print("Error writing to socket, signed_n:", signed_n)
+        return 0
     out_n[0] = signed_n
-    return 0
+    return 7000
+
 
 fn read_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
+    print("we are in read_cb")
     var conn = userdata.bitcast[ConnData]()[]
+    print("Reading from socket")
     var signed_n = read(conn.fd, buf, len)
     print("Read bytes: ", buf)
     if signed_n < 0:
@@ -210,46 +236,42 @@ fn do_read(conn: ConnData, rconn: UnsafePointer[Connection]) raises -> Int:
     print("going into rustls_connection_read_tls")
     err = rustls_connection_read_tls(rconn, conn.data.data, conn.data.len, n_ptr)
     print("coming out of rustls_connection_read_tls")
-    if err == EAGAIN or err == EWOULDBLOCK:
-        print("Reading from socket: EAGAIN or EWOULDBLOCK: {strerror(errno())}")
-        return DEMO_AGAIN
-    elif err != 0:
-        print("Reading from socket: errno {err}")
-        return DEMO_ERROR
-
-    # result = rustls_connection_process_new_packets(rconn)
-    # if result != 7000:
-    #     print_error("in process_new_packets", result)
+    # if err == EAGAIN or err == EWOULDBLOCK:
+    #     print("Reading from socket: EAGAIN or EWOULDBLOCK: ", err)
+    #     return DEMO_AGAIN
+    # elif err != 0:
+    #     print("Reading from socket: err ", err)
     #     return DEMO_ERROR
 
-    # result = copy_plaintext_to_buffer(conn)
-    # if result != DEMO_EOF:
-    #     return result
+    result = rustls_connection_process_new_packets(rconn)
+    if result != 7000:
+        print_error("in process_new_packets", result)
+        return DEMO_ERROR
 
     # If we got an EOF on the plaintext stream (peer closed connection cleanly),
     # verify that the sender then closed the TCP connection.
-    # var buf = Bytes(1)
-    # let signed_n = read(conn.fd, buf.data(), 1)
+    var buf = SliceBytes(UnsafePointer[UInt8](), 1)
+    var signed_n = read(conn.fd, buf.data, 1)
     
-    # if signed_n > 0:
-    #     print(f"Error: read returned {signed_n} bytes after receiving close_notify")
-    #     return DEMO_ERROR
-    # elif signed_n < 0 and errno() != EWOULDBLOCK:
-    #     print(f"Wrong error after receiving close_notify: {strerror(errno())}")
-    #     return DEMO_ERROR
+    if signed_n > 0:
+        print("Error: read returned ", signed_n, " bytes after receiving close_notify")
+        return DEMO_ERROR
+    elif signed_n < 0:
+        print("Wrong error after receiving close_notify: ", signed_n)
+        return DEMO_ERROR
     
     return DEMO_EOF
 
 fn print_error(context: String, result: UInt32):
-    print("Error in {context}: {rustls_error(result)}")
+    print("Error in ", context, ": ", result)
 
 fn rustls_error(result: UInt32) -> String:
     # Implement this function to return a string representation of the rustls error
-    return "Rustls error code: {result}"
+    return "Rustls error code: " + result.__str__()
 
 fn strerror(err: Int) -> String:
     # Implement this function to return a string representation of the system error
-    return "System error code: {err}"
+    return "System error code: " + err.__str__()
 
 
 fn main():
