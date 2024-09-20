@@ -1,4 +1,5 @@
 from sys import ffi
+from memory import Arc
 import os
 
 alias RustlsResult = Int
@@ -174,11 +175,26 @@ fn rustls_connection_get_negotiated_ciphersuite_name(
     ]("rustls_connection_get_negotiated_ciphersuite_name")(conn)
 
 fn rustls_connection_read_tls(
-    conn: UnsafePointer[Connection], buf: UnsafePointer[UInt8], len: Int, read: UnsafePointer[Int]
+    conn: UnsafePointer[Connection],
+    read_cb: fn (
+        UnsafePointer[UInt8], UnsafePointer[UInt8], Int, UnsafePointer[Int]
+    ) -> Int,
+    userdata: UnsafePointer[UInt8],
+    out_n: UnsafePointer[Int],
 ) -> RustlsResult:
     return _rustls.get_function[
-        fn (UnsafePointer[Connection], UnsafePointer[UInt8], Int, UnsafePointer[Int]) -> RustlsResult
-    ]("rustls_connection_read_tls")(conn, buf, len, read)
+        fn (
+            UnsafePointer[Connection],
+            fn (
+                UnsafePointer[UInt8],
+                UnsafePointer[UInt8],
+                Int,
+                UnsafePointer[Int],
+            ) -> Int,
+            UnsafePointer[UInt8],
+            UnsafePointer[Int],
+        ) -> RustlsResult
+    ]("rustls_connection_read_tls")(conn, read_cb, userdata, out_n)
 
 fn rustls_connection_write_tls(
     rconn: UnsafePointer[Connection], write_cb: fn (userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int, conn: UnsafePointer[ConnData], n: Int) -> RustlsResult:
@@ -197,6 +213,67 @@ fn rustls_connection_process_new_packets(conn: UnsafePointer[Connection]) -> Rus
 
 fn new_client_config_builder() -> UnsafePointer[ClientConfigBuilder]:
     return _rustls.get_function[fn () -> UnsafePointer[ClientConfigBuilder]]("rustls_client_config_builder_new")()
+
+fn rustls_client_config_builder_new_custom(
+    provider: UnsafePointer[CryptoProvider],
+    tls_versions: UnsafePointer[UInt16],
+    tls_versions_len: UInt,
+    builder_out: UnsafePointer[UnsafePointer[ClientConfigBuilder]],
+) -> RustlsResult:
+    return _rustls.get_function[fn (
+        UnsafePointer[CryptoProvider],
+        UnsafePointer[UInt16],
+        UInt,
+        UnsafePointer[UnsafePointer[ClientConfigBuilder]],
+    ) -> RustlsResult]("rustls_client_config_builder_new_custom")(
+        provider, tls_versions, tls_versions_len, builder_out
+    )
+
+struct ProtocolVersion:
+    alias SSLv2: UInt16 = 0x0200
+    alias SSLv3: UInt16 = 0x0300
+    alias TLSv1_0: UInt16 = 0x0301
+    alias TLSv1_1: UInt16 = 0x0302
+    alias TLSv1_2: UInt16 = 0x0303
+    alias TLSv1_3: UInt16 = 0x0304
+    alias DTLSv1_0: UInt16 = 0xFEFF
+    alias DTLSv1_2: UInt16 = 0xFEFD
+    alias DTLSv1_3: UInt16 = 0xFEFC
+
+
+@value
+struct CryptoProvider:
+    pass
+
+
+@value
+struct SupportedCipherSuite:
+    pass
+
+
+@value
+struct CryptoProviderBuilder:
+    var base: Arc[CryptoProvider]
+    var cipher_suites: List[SupportedCipherSuite]
+
+
+fn rustls_crypto_provider_builder_new_with_base(base: UnsafePointer[CryptoProvider]) -> UnsafePointer[CryptoProviderBuilder]:
+    return _rustls.get_function[
+        fn (UnsafePointer[CryptoProvider]) -> UnsafePointer[CryptoProviderBuilder]
+    ]("rustls_crypto_provider_builder_new_with_base")(base)
+
+fn rustls_crypto_provider_builder_new_from_default(builder_out: UnsafePointer[UnsafePointer[CryptoProviderBuilder]]) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[UnsafePointer[CryptoProviderBuilder]]) -> RustlsResult
+    ]("rustls_crypto_provider_builder_new_from_default")(builder_out)
+
+fn rustls_crypto_provider_builder_build(
+    builder: UnsafePointer[CryptoProviderBuilder],
+    provider_out: UnsafePointer[UnsafePointer[CryptoProvider]]
+) -> RustlsResult:
+    return _rustls.get_function[
+        fn (UnsafePointer[CryptoProviderBuilder], UnsafePointer[UnsafePointer[CryptoProvider]]) -> RustlsResult
+    ]("rustls_crypto_provider_builder_build")(builder, provider_out)
 
 
 fn new_client_connection(

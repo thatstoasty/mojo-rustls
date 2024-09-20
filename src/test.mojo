@@ -9,6 +9,9 @@ from rustls import (
     SliceBytes,
     RustlsResult,
     ConnData,
+    CryptoProvider,
+    CryptoProviderBuilder,
+    ProtocolVersion,
     new_root_cert_store_builder,
     load_roots_from_file,
     new_client_connection,
@@ -29,10 +32,13 @@ from rustls import (
     rustls_connection_wants_write,
     rustls_connection_write_tls,
     rustls_connection_process_new_packets,
+    rustls_crypto_provider_builder_build,
+    rustls_crypto_provider_builder_new_from_default,
+    rustls_client_config_builder_new_custom,
 )
 import os
 from sys import exit
-from memory.memory import memset
+from memory.memory import memset, memcpy
 from sys.info import sizeof
 from sys.ffi import external_call
 from lightbug_http.sys.net import create_connection
@@ -87,16 +93,16 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
         "Accept: carcinization/inevitable, text/html\r\n" +
         "Connection: close\r\n" +
         "\r\n"
-    var header_bytes = headers.as_bytes_slice().unsafe_ptr()
+    var header_bytes = headers.unsafe_ptr()
     var buf = SliceBytes(header_bytes, len(headers))
 
     # Write plaintext to rustls connection
     result = rustls_connection_write(rustls_connection, buf.data, len(headers), UnsafePointer.address_of(n))
     if result != 7000:
-        print("Error writing plaintext bytes to rustls_connection")
+        print("Error writing plaintext bytes to rustls_connection", result)
         return ret
     if n != len(headers):
-        print("Short write writing plaintext bytes to rustls_connection")
+        print("Short write writing plaintext bytes to rustls_connection", result)
         return ret
 
     var ciphersuite_name = rustls_connection_get_negotiated_ciphersuite_name(rustls_connection)
@@ -186,8 +192,20 @@ fn send_request_and_read_response(conn: ConnData, rustls_connection: UnsafePoint
 
     return 7000
 
+fn print_ptr(buf: UnsafePointer[UInt8], len: Int):
+    var new = List[UInt8](capacity=len+1)
+    # memcpy(new.unsafe_ptr(), buf, len)
+    for i in range(len):
+        new.append(buf[i])
+    new.append(0)
+    # new.size = len + 1
+    var result = String(new^)
+    print("Printing buffer:", result)
+
+
 fn write_cb(userdata: UnsafePointer[UInt8], buf: UnsafePointer[UInt8], len: Int, out_n: UnsafePointer[Int]) -> Int:
     var conn = userdata.bitcast[ConnData]()[]
+    print_ptr(buf, len)
     print("Writing to socket, length:", len)
     print("Record type:", buf[0])
     print("TLS version:", buf[1], buf[2])
@@ -232,9 +250,10 @@ fn do_read(conn: ConnData, rconn: UnsafePointer[Connection]) raises -> Int:
     var result: UInt32 = 1
     var n: Int = 0
     var n_ptr = UnsafePointer.address_of(n)
-    
+
     print("going into rustls_connection_read_tls")
-    err = rustls_connection_read_tls(rconn, conn.data.data, conn.data.len, n_ptr)
+    err = rustls_connection_read_tls(rconn, read_cb, UnsafePointer.address_of(conn).bitcast[UInt8](), n_ptr)
+    _ = n
     print("coming out of rustls_connection_read_tls")
     # if err == EAGAIN or err == EWOULDBLOCK:
     #     print("Reading from socket: EAGAIN or EWOULDBLOCK: ", err)
@@ -281,10 +300,35 @@ fn main():
         exit(1)
 
     # var config = RustlsClientConfig()
-    var config_builder = new_client_config_builder()
+    # var config_builder = new_client_config_builder()
+    var crypto_provider_builder = UnsafePointer[CryptoProviderBuilder]()
+    var result = rustls_crypto_provider_builder_new_from_default(UnsafePointer.address_of(crypto_provider_builder))
+    if result != 7000:
+        print("failed to build crypto provider builder, Result: ", result)
+        exit(1)
+
+    var crypto_provider = UnsafePointer[CryptoProvider]()
+    result = rustls_crypto_provider_builder_build(crypto_provider_builder, UnsafePointer.address_of(crypto_provider))
+    if result != 7000:
+        print("failed to build crypto provider, Result: ", result)
+        exit(1)
+
+    var tls_version = ProtocolVersion.TLSv1_2
+    var config_builder = UnsafePointer[ClientConfigBuilder]()
+    result = rustls_client_config_builder_new_custom(
+        crypto_provider,
+        UnsafePointer.address_of(tls_version),
+        sizeof[UInt16](),
+        UnsafePointer.address_of(config_builder),
+    )
+    _ = tls_version
+
+    if result != 7000:
+        print("failed to build client config builder, Result: ", result)
+        exit(1)
 
     var server_cert_root_store_builder = new_root_cert_store_builder()
-    var result = load_roots_from_file(server_cert_root_store_builder, cert_path.unsafe_ptr(), False)
+    result = load_roots_from_file(server_cert_root_store_builder, cert_path.unsafe_ptr(), False)
     if result != 7000:
         print("failed to load roots from file, Result: ", result)
         exit(1)
@@ -319,13 +363,13 @@ fn main():
         print("failed to build client config, Result: ", result)
         exit(1)
     
-    var host = "www.google.com"
+    var host = "httpbin.org"
     var port = "443"
     var path = "/"
     try:
         result = do_request(client_config, host, port, path)
         if result != 7000:
-            print("failed to build client config, Result: ", result)
+            print("failed to send request, Result: ", result)
             exit(1)
     except e:
         print("Error: ", e)
