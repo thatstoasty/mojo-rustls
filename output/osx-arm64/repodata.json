@@ -1,0 +1,24 @@
+{
+  "info": {
+    "subdir": "osx-arm64"
+  },
+  "packages": {},
+  "packages.conda": {
+    "mojo-rustls-ffi-0.1.0-h60d57d3_0.conda": {
+      "arch": "arm64",
+      "build": "h60d57d3_0",
+      "build_number": 0,
+      "depends": [],
+      "license": "MIT",
+      "md5": "43ecc615d55b8c548d1b77f69ab6adad",
+      "name": "mojo-rustls-ffi",
+      "platform": "osx",
+      "sha256": "f57ca18ddeba46b8c7bdad63345739d80c320fcab6ddf677b40e67b8858a4b83",
+      "size": 1200671,
+      "subdir": "osx-arm64",
+      "timestamp": 1726516446930,
+      "version": "0.1.0"
+    }
+  },
+  "repodata_version": 2
+}

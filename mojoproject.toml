@@ -1,6 +1,10 @@
 [project]
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
-channels = ["conda-forge", "https://conda.modular.com/max", "https://repo.prefix.dev/mojo-community"]
+channels = [
+    "conda-forge",
+    "https://conda.modular.com/max-nightly",
+    "https://repo.prefix.dev/mojo-community",
+]
 description = "Add a short description here"
 name = "mojo-rustls"
 platforms = ["osx-arm64"]
