@@ -2,7 +2,7 @@
 authors = ["Mikhail Tavarez <miktavarez@gmail.com>"]
 channels = [
     "conda-forge",
-    "https://conda.modular.com/max-nightly",
+    "https://conda.modular.com/max",
     "https://repo.prefix.dev/mojo-community",
 ]
 description = "Add a short description here"
@@ -20,4 +20,4 @@ publish = { cmd = "bash scripts/publish.sh", env = { PREFIX_API_KEY = "$PREFIX_A
 max = ">=24.5.0,<25"
 # mojo-rustls = ">=0.1.1,<0.2" # self dependency just for local testing
 gojo = ">=0.1.9,<0.2"
-lightbug_http = "0.1.3"
+lightbug_http = "0.1.6"

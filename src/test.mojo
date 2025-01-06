@@ -1,8 +1,11 @@
 import rustls as rls
 import os
-from utils import StringSlice, Span
+from utils import StringSlice
 from collections import Optional, InlineArray
-from memory import Arc
+from memory import Span, ArcPointer
+from utilss import logger
+from libc import socket, AF_INET, SOCK_STREAM, send, atol
+# from lightbug_http.net import create_connection
 
 alias DEMO_OK = 0
 alias DEMO_AGAIN = 1
@@ -23,24 +26,30 @@ fn do_request(
     port: String,
     path: String,
 ) raises:
-    # var fd = socket(AF_INET, SOCK_STREAM, 0)
+    # logger.info("establish TCP connection")
+    var fd = socket(AF_INET, SOCK_STREAM, 0)
+    if fd < 0:
+        raise Error("Failed to create socket")
+
+    # Create the TCP connection
     # var connection = create_connection(fd, host, atol(port))
-    # if fd < 0:
-    #     print("Failed to create connection")
-    #     return ret
+    # if connection < 0:
+    #     raise Error("Failed to create connection")
 
-    conn = rls.ClientConnection(client_config, host)
+    # Now create the TLS connection with the established TCP socket
+    var conn = rls.ClientConnection(client_config, host)
+    
+    # Set the underlying TCP socket
+    # conn.set_socket(fd)
 
-    # var conn = ConnData(
-    #     rconn, fd.__int__(), "verify_arg", SliceBytes(UnsafePointer[UInt8](), 0)
-    # )
+    # # Perform TLS handshake
+    # try:
+    #     conn.do_handshake()
+    # except:
+    #     raise Error("TLS handshake failed")
 
-    # rustls_connection_set_userdata(
-    #     rconn, UnsafePointer[ConnData].address_of(conn)
-    # )
-    # conn.set_log_callback[log_cb]()
-
-    # send_request_and_read_response(conn, rconn, host, path)
+    # # Now you can send your request
+    # send_request_and_read_response(conn, host, path)
 
 
 fn log_cb(level: Int, message: StringSlice):
@@ -75,7 +84,7 @@ fn send_request_and_read_response(
         + "\r\n"
     )
 
-    header_bytes = headers.as_bytes_slice()
+    header_bytes = headers.as_bytes()
 
     # Write plaintext to rustls connection
 
@@ -335,10 +344,10 @@ fn main() raises:
     )
     server_cert_verifier = server_cert_verifier_builder^.build()
     config_builder.set_server_verifier(server_cert_verifier)
-    alpn = List[Span[UInt8, ImmutableAnyLifetime]]("http/1.1".as_bytes_slice())
+    alpn = List[Span[UInt8, StaticConstantOrigin]]("http/1.1".as_bytes())
     config_builder.set_alpn_protocols(alpn)
     client_config = config_builder^.build()
     host = "www.google.com"
     port = "443"
     path = "/"
-    # result = do_request(client_config, host, port, path)
+    result = do_request(client_config, host, port, path)

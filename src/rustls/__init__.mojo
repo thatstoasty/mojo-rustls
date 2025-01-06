@@ -1,8 +1,8 @@
 import . _cffi as _c
 from pathlib import Path
 from os import PathLike
-from utils import Span, StaticString, StringSlice
-from memory import Arc, UnsafePointer
+from utils import StaticString, StringSlice
+from memory import Span, ArcPointer, UnsafePointer
 from ._cffi import TlsVersion, LogLevel
 
 
@@ -166,7 +166,7 @@ struct ClientConfigBuilder:
         _c.client_config_builder_free(self._handle)
 
     fn set_alpn_protocols[
-        lt: ImmutableLifetime
+        lt: Origin
     ](inout self, protocols: Span[Span[UInt8, lt]]) raises:
         protocols_ = List[_c.SliceBytes](capacity=len(protocols))
         for p in protocols:
@@ -186,7 +186,7 @@ struct ClientConfigBuilder:
         _c.client_config_builder_set_enable_sni(self._handle, enable)
 
     fn set_certified_key(
-        inout self, certified_keys: Span[Arc[CertifiedKey]]
+        inout self, certified_keys: Span[ArcPointer[CertifiedKey]]
     ) raises:
         keys = List[UnsafePointer[_c.CertifiedKey]](
             capacity=len(certified_keys)
@@ -513,7 +513,7 @@ struct ServerConfigBuilder:
             raise Error("failed to set alpn protocol" + str(result.value))
 
     fn set_certified_keys(
-        inout self, certified_keys: Span[Arc[CertifiedKey]]
+        inout self, certified_keys: Span[ArcPointer[CertifiedKey]]
     ) raises:
         """
         Provide the configuration a list of certificates where the connection
@@ -642,6 +642,9 @@ struct SupportedCiphersuitesIterator:
         )
         self.index += 1
         return result
+    
+    fn __has_next__(self) -> Bool:
+        return self.index < self.len
 
     fn __len__(self) -> Int:
         return self.len - self.index

@@ -912,13 +912,13 @@ fn acceptor_accept(
     `rustls_acceptor` is acceptable from a memory perspective but pointless
     from a protocol perspective.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[Acceptor],
             UnsafePointer[UnsafePointer[Accepted]],
             UnsafePointer[UnsafePointer[AcceptedAlert]],
         ) -> UInt32
-    ]("rustls_acceptor_accept")(acceptor, out_accepted, out_alert)
+    ]("rustls_acceptor_accept")(acceptor, out_accepted, out_alert))
 
 
 fn accepted_server_name(accepted: UnsafePointer[Accepted]) -> StringRef:
@@ -1248,7 +1248,7 @@ fn certified_key_build(
     `rustls_certified_key`'s memory will automatically be released when
     the `rustls_server_config` is freed.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[UInt8],
             Int,
@@ -1262,7 +1262,7 @@ fn certified_key_build(
         private_key,
         private_key_len,
         certified_key_out,
-    )
+    ))
 
 
 fn certified_key_build_with_signing_key(
@@ -1301,7 +1301,7 @@ fn certified_key_build_with_signing_key(
     `rustls_certified_key`'s memory will automatically be released when
     the `rustls_server_config` is freed.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[UInt8],
             Int,
@@ -1310,7 +1310,7 @@ fn certified_key_build_with_signing_key(
         ) -> UInt32
     ]("rustls_certified_key_build_with_signing_key")(
         cert_chain, cert_chain_len, signing_key, certified_key
-    )
+    ))
 
 
 fn certified_key_get_certificate(
@@ -1345,7 +1345,7 @@ fn certified_key_clone_with_ocsp(
     The cloned key is independent from its original and needs to be freed
     by the application.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CertifiedKey],
             UnsafePointer[SliceBytes],
@@ -1353,7 +1353,7 @@ fn certified_key_clone_with_ocsp(
         ) -> UInt32
     ]("rustls_certified_key_clone_with_ocsp")(
         certified_key, ocsp_response, cloned_key_out
-    )
+    ))
 
 
 fn certified_key_free(key: UnsafePointer[CertifiedKey]):
@@ -1404,11 +1404,11 @@ fn root_cert_store_builder_add_pem(
     This may be useful on systems that have syntactically invalid root
     certificates.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[RootCertStoreBuilder], UnsafePointer[UInt8], Int, Bool
         ) -> UInt32
-    ]("rustls_root_cert_store_builder_add_pem")(builder, pem, pem_len, strict)
+    ]("rustls_root_cert_store_builder_add_pem")(builder, pem, pem_len, strict))
 
 
 fn root_cert_store_builder_load_roots_from_file(
@@ -1427,7 +1427,7 @@ fn root_cert_store_builder_load_roots_from_file(
     This may be useful on systems that have syntactically invalid root
     certificates.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[RootCertStoreBuilder],
             UnsafePointer[Int8],
@@ -1435,7 +1435,7 @@ fn root_cert_store_builder_load_roots_from_file(
         ) -> UInt32
     ]("rustls_root_cert_store_builder_load_roots_from_file")(
         builder, filename, strict
-    )
+    ))
 
 
 fn root_cert_store_builder_build(
@@ -1451,12 +1451,12 @@ fn root_cert_store_builder_build(
     instances and must be freed by the application when no longer needed. See the documentation of
     `rustls_root_cert_store_free` for details about lifetime.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[RootCertStoreBuilder],
             UnsafePointer[UnsafePointer[RootCertStore]],
         ) -> UInt32
-    ]("rustls_root_cert_store_builder_build")(builder, root_cert_store_out)
+    ]("rustls_root_cert_store_builder_build")(builder, root_cert_store_out))
 
 
 fn root_cert_store_builder_free(
@@ -1587,7 +1587,7 @@ fn web_pki_client_cert_verifier_builder_add_crl(
 
     This function returns an error if the provided buffer is not valid PEM encoded content.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[WebPkiClientCertVerifierBuilder],
             UnsafePointer[UInt8],
@@ -1595,7 +1595,7 @@ fn web_pki_client_cert_verifier_builder_add_crl(
         ) -> UInt32
     ]("rustls_web_pki_client_cert_verifier_builder_add_crl")(
         builder, crl_pem, crl_pem_len
-    )
+    ))
 
 
 fn web_pki_client_cert_verifier_only_check_end_entity_revocation(
@@ -1606,11 +1606,11 @@ fn web_pki_client_cert_verifier_only_check_end_entity_revocation(
     check the revocation status of end entity certificates, ignoring any intermediate certificates
     in the chain.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[WebPkiClientCertVerifierBuilder],) -> UInt32
     ]("rustls_web_pki_client_cert_verifier_only_check_end_entity_revocation")(
         builder
-    )
+    ))
 
 
 fn web_pki_client_cert_verifier_allow_unknown_revocation_status(
@@ -1635,11 +1635,11 @@ fn web_pki_client_cert_verifier_builder_allow_unauthenticated(
     Allow unauthenticated anonymous clients in addition to those that present a client
     certificate that chains to one of the verifier's configured trust anchors.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[WebPkiClientCertVerifierBuilder]) -> UInt32
     ]("rustls_web_pki_client_cert_verifier_builder_allow_unauthenticated")(
         builder
-    )
+    ))
 
 
 fn web_pki_client_cert_verifier_clear_root_hint_subjects(
@@ -1653,9 +1653,9 @@ fn web_pki_client_cert_verifier_clear_root_hint_subjects(
     hint subjects, indicating the client should make a free choice of which certificate
     to send.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[WebPkiClientCertVerifierBuilder],) -> UInt32
-    ]("rustls_web_pki_client_cert_verifier_clear_root_hint_subjects")(builder)
+    ]("rustls_web_pki_client_cert_verifier_clear_root_hint_subjects")(builder))
 
 
 fn web_pki_client_cert_verifier_add_root_hint_subjects(
@@ -1671,14 +1671,14 @@ fn web_pki_client_cert_verifier_add_root_hint_subjects(
     effect, use `rustls_web_pki_client_cert_verifier_clear_root_hint_subjects` to clear
     the subject hints.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[WebPkiClientCertVerifierBuilder],
             UnsafePointer[RootCertStore],
         ) -> UInt32
     ]("rustls_web_pki_client_cert_verifier_add_root_hint_subjects")(
         builder, store
-    )
+    ))
 
 
 fn web_pki_client_cert_verifier_builder_build(
@@ -1694,14 +1694,14 @@ fn web_pki_client_cert_verifier_builder_build(
     freed by the application when no longer needed. See the documentation of
     `rustls_web_pki_client_cert_verifier_builder_free` for details about lifetime.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[WebPkiClientCertVerifierBuilder],
             UnsafePointer[UnsafePointer[ClientCertVerifier]],
         ) -> UInt32
     ]("rustls_web_pki_client_cert_verifier_builder_build")(
         builder, verifier_out
-    )
+    ))
 
 
 fn web_pki_client_cert_verifier_builder_free(
@@ -1800,7 +1800,7 @@ fn web_pki_server_cert_verifier_builder_add_crl(
 
     This function returns an error if the provided buffer is not valid PEM encoded content.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[WebPkiServerCertVerifierBuilder],
             UnsafePointer[UInt8],
@@ -1808,7 +1808,7 @@ fn web_pki_server_cert_verifier_builder_add_crl(
         ) -> UInt32
     ]("rustls_web_pki_server_cert_verifier_builder_add_crl")(
         builder, crl_pem, crl_pem_len
-    )
+    ))
 
 
 fn web_pki_server_cert_verifier_only_check_end_entity_revocation(
@@ -1819,11 +1819,11 @@ fn web_pki_server_cert_verifier_only_check_end_entity_revocation(
     check the revocation status of end entity certificates, ignoring any intermediate certificates
     in the chain.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[WebPkiServerCertVerifierBuilder]) -> UInt32
     ]("rustls_web_pki_server_cert_verifier_only_check_end_entity_revocation")(
         builder
-    )
+    ))
 
 
 fn web_pki_server_cert_verifier_allow_unknown_revocation_status(
@@ -1836,11 +1836,11 @@ fn web_pki_server_cert_verifier_allow_unknown_revocation_status(
 
     Overrides the default behavior where unknown revocation status is considered an error.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[WebPkiServerCertVerifierBuilder]) -> UInt32
     ]("rustls_web_pki_server_cert_verifier_allow_unknown_revocation_status")(
         builder
-    )
+    ))
 
 
 fn web_pki_server_cert_verifier_builder_build(
@@ -1856,14 +1856,14 @@ fn web_pki_server_cert_verifier_builder_build(
     freed by the application when no longer needed. See the documentation of
     `rustls_web_pki_server_cert_verifier_builder_free` for details about lifetime.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[WebPkiServerCertVerifierBuilder],
             UnsafePointer[UnsafePointer[ServerCertVerifier]],
         ) -> UInt32
     ]("rustls_web_pki_server_cert_verifier_builder_build")(
         builder, verifier_out
-    )
+    ))
 
 
 fn web_pki_server_cert_verifier_builder_free(
@@ -1893,9 +1893,9 @@ fn platform_server_cert_verifier(
 
     [`rustls-platform-verifier`]: https://github.com/rustls/rustls-platform-verifier
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[UnsafePointer[ServerCertVerifier]],) -> UInt32
-    ]("rustls_platform_server_cert_verifier")(verifier_out)
+    ]("rustls_platform_server_cert_verifier")(verifier_out))
 
 
 fn platform_server_cert_verifier_with_provider(
@@ -1979,7 +1979,7 @@ fn client_config_builder_new_custom(
     Ciphersuites are configured separately via the crypto provider. See
     `rustls_crypto_provider_builder_set_cipher_suites` for more information.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProvider],
             UnsafePointer[UInt16],
@@ -1988,7 +1988,7 @@ fn client_config_builder_new_custom(
         ) -> UInt32
     ]("rustls_client_config_builder_new_custom")(
         provider, tls_versions, tls_versions_len, builder_out
-    )
+    ))
 
 
 fn client_config_builder_dangerous_set_certificate_verifier(
@@ -2024,14 +2024,14 @@ fn client_config_builder_dangerous_set_certificate_verifier(
 
     <https://docs.rs/rustls/latest/rustls/client/struct.DangerousClientConfig.html#method.set_certificate_verifier>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ClientConfigBuilder],
             VerifyServerCertCallback,
         ) -> UInt32
     ]("rustls_client_config_builder_dangerous_set_certificate_verifier")(
         config_builder, callback
-    )
+    ))
 
 
 fn client_config_builder_set_server_verifier(
@@ -2073,13 +2073,13 @@ fn client_config_builder_set_alpn_protocols(
 
     <https://docs.rs/rustls/latest/rustls/client/struct.ClientConfig.html#structfield.alpn_protocols>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ClientConfigBuilder],
             UnsafePointer[SliceBytes],
             Int,
         ) -> UInt32
-    ]("rustls_client_config_builder_set_alpn_protocols")(builder, protocol, len)
+    ]("rustls_client_config_builder_set_alpn_protocols")(builder, protocol, len))
 
 
 fn client_config_builder_set_enable_sni(
@@ -2115,7 +2115,7 @@ fn client_config_builder_set_certified_key(
     EXPERIMENTAL: installing a client authentication callback will replace any
     configured certified keys and vice versa.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ClientConfigBuilder],
             UnsafePointer[UnsafePointer[CertifiedKey]],
@@ -2123,7 +2123,7 @@ fn client_config_builder_set_certified_key(
         ) -> UInt32
     ]("rustls_client_config_builder_set_certified_key")(
         builder, certified_keys, certified_keys_len
-    )
+    ))
 
 
 fn client_config_builder_build(
@@ -2134,12 +2134,12 @@ fn client_config_builder_build(
     Turn a *rustls_client_config_builder (mutable) into a const *rustls_client_config
     (read-only).
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ClientConfigBuilder],
             UnsafePointer[UnsafePointer[ClientConfig]],
         ) -> UInt32
-    ]("rustls_client_config_builder_build")(builder, config_out)
+    ]("rustls_client_config_builder_build")(builder, config_out))
 
 
 fn client_config_builder_free(
@@ -2488,14 +2488,14 @@ fn connection_write(
     (this may be less than `count`).
     <https://docs.rs/rustls/latest/rustls/struct.Writer.html#method.write>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[Connection],
             UnsafePointer[UInt8],
             Int,
             UnsafePointer[Int],
         ) -> UInt32
-    ]("rustls_connection_write")(conn, buf, count, out_n)
+    ]("rustls_connection_write")(conn, buf, count, out_n))
 
 
 fn connection_read(
@@ -2518,14 +2518,14 @@ fn connection_read(
     multiple times without zeroizing before each call is fine.
     <https://docs.rs/rustls/latest/rustls/struct.Reader.html#method.read>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[Connection],
             UnsafePointer[UInt8],
             Int,
             UnsafePointer[Int],
         ) -> UInt32
-    ]("rustls_connection_read")(conn, buf, count, out_n)
+    ]("rustls_connection_read")(conn, buf, count, out_n))
 
 
 fn connection_free(conn: UnsafePointer[Connection]):
@@ -2572,7 +2572,7 @@ fn crypto_provider_builder_new_from_default(
     res = _rustls.get_function[
         fn (UnsafePointer[UnsafePointer[CryptoProviderBuilder]]) -> UInt32
     ]("rustls_crypto_provider_builder_new_from_default")(builder_out)
-    return res
+    return Result(res)
 
 
 fn crypto_provider_builder_new_with_base(
@@ -2619,7 +2619,7 @@ fn crypto_provider_builder_set_cipher_suites(
     Returns an error if the builder has already been built. Overwrites any previously
     set ciphersuites.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProviderBuilder],
             UnsafePointer[UnsafePointer[SupportedCiphersuite]],
@@ -2627,7 +2627,7 @@ fn crypto_provider_builder_set_cipher_suites(
         ) -> UInt32
     ]("rustls_crypto_provider_builder_set_cipher_suites")(
         builder, cipher_suites, cipher_suites_len
-    )
+    ))
 
 
 fn crypto_provider_builder_build(
@@ -2642,12 +2642,12 @@ fn crypto_provider_builder_build(
     for further calls, except to `rustls_crypto_provider_builder_free`. The caller must
     still free the builder after a successful build.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProviderBuilder],
             UnsafePointer[UnsafePointer[CryptoProvider]],
         ) -> UInt32
-    ]("rustls_crypto_provider_builder_build")(builder, provider_out)
+    ]("rustls_crypto_provider_builder_build")(builder, provider_out))
 
 
 fn crypto_provider_builder_build_as_default(
@@ -2666,9 +2666,9 @@ fn crypto_provider_builder_build_as_default(
     for further calls, except to `rustls_crypto_provider_builder_free`. The caller must
     still free the builder after a successful build.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[CryptoProviderBuilder]) -> UInt32
-    ]("rustls_crypto_provider_builder_build_as_default")(builder)
+    ]("rustls_crypto_provider_builder_build_as_default")(builder))
 
 
 fn crypto_provider_builder_free(
@@ -2776,7 +2776,7 @@ fn crypto_provider_load_key(
     is written to `signing_key_out`. The caller owns the returned `rustls_signing_key`
     and must free it with `rustls_signing_key_free`.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProvider],
             UnsafePointer[UInt8],
@@ -2785,7 +2785,7 @@ fn crypto_provider_load_key(
         ) -> UInt32
     ]("rustls_crypto_provider_load_key")(
         provider, private_key, private_key_len, signing_key_out
-    )
+    ))
 
 
 fn crypto_provider_random(
@@ -2801,13 +2801,13 @@ fn crypto_provider_random(
 
     Returns `RUSTLS_RESULT_OK` on success, or `RUSTLS_RESULT_GET_RANDOM_FAILED` on failure.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProvider],
             UnsafePointer[UInt8],
             Int,
         ) -> UInt32
-    ]("rustls_crypto_provider_random")(provider, buff, len)
+    ]("rustls_crypto_provider_random")(provider, buff, len))
 
 
 fn crypto_provider_free(provider: UnsafePointer[CryptoProvider]):
@@ -3008,7 +3008,7 @@ fn server_config_builder_new_custom(
     Ciphersuites are configured separately via the crypto provider. See
     `rustls_crypto_provider_builder_set_cipher_suites` for more information.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[CryptoProvider],
             UnsafePointer[UInt16],
@@ -3017,7 +3017,7 @@ fn server_config_builder_new_custom(
         ) -> UInt32
     ]("rustls_server_config_builder_new_custom")(
         provider, versions, tls_versions_len, builder_out
-    )
+    ))
 
 
 fn server_config_builder_set_client_verifier(
@@ -3064,9 +3064,9 @@ fn server_config_builder_set_ignore_client_order(
     as configured.
     <https://docs.rs/rustls/latest/rustls/struct.ServerConfig.html#structfield.ignore_client_order>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[ServerConfigBuilder], Bool) -> UInt32
-    ]("rustls_server_config_builder_set_ignore_client_order")(builder, ignore)
+    ]("rustls_server_config_builder_set_ignore_client_order")(builder, ignore))
 
 
 fn server_config_builder_set_alpn_protocols(
@@ -3087,13 +3087,13 @@ fn server_config_builder_set_alpn_protocols(
 
     <https://docs.rs/rustls/latest/rustls/server/struct.ServerConfig.html#structfield.alpn_protocols>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ServerConfigBuilder], UnsafePointer[SliceBytes], Int
         ) -> UInt32
     ]("rustls_server_config_builder_set_alpn_protocols")(
         builder, protocols, len
-    )
+    ))
 
 
 fn server_config_builder_set_certified_keys(
@@ -3117,7 +3117,7 @@ fn server_config_builder_set_certified_keys(
     EXPERIMENTAL: installing a client_hello callback will replace any
     configured certified keys and vice versa.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ServerConfigBuilder],
             UnsafePointer[UnsafePointer[CertifiedKey]],
@@ -3125,7 +3125,7 @@ fn server_config_builder_set_certified_keys(
         ) -> UInt32
     ]("rustls_server_config_builder_set_certified_keys")(
         builder, certified_keys, certified_keys_len
-    )
+    ))
 
 
 fn server_config_builder_build(
@@ -3141,12 +3141,12 @@ fn server_config_builder_build(
     and the builder was constructed using `rustls_server_config_builder_new`, or if no
     certificate resolver was set.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ServerConfigBuilder],
             UnsafePointer[UnsafePointer[ServerConfig]],
         ) -> UInt32
-    ]("rustls_server_config_builder_build")(builder, config_out)
+    ]("rustls_server_config_builder_build")(builder, config_out))
 
 
 fn server_config_free(config: UnsafePointer[ServerConfig]):
@@ -3182,12 +3182,12 @@ fn server_connection_new(
     The caller now owns the rustls_connection and must call `rustls_connection_free` when
     done with it.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ServerConfig],
             UnsafePointer[UnsafePointer[Connection]],
         ) -> UInt32
-    ]("rustls_server_connection_new")(config, conn_out)
+    ]("rustls_server_connection_new")(config, conn_out))
 
 
 fn server_connection_get_server_name(
@@ -3209,14 +3209,14 @@ fn server_connection_get_server_name(
     because it hasn't been processed yet, or because the client did not send SNI.
     <https://docs.rs/rustls/latest/rustls/server/struct.ServerConnection.html#method.server_name>
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[Connection],
             UnsafePointer[UInt8],
             Int,
             UnsafePointer[Int],
         ) -> UInt32
-    ]("rustls_server_connection_get_server_name")(conn, buf, count, out_n)
+    ]("rustls_server_connection_get_server_name")(conn, buf, count, out_n))
 
 
 fn server_config_builder_set_hello_callback(
@@ -3238,9 +3238,9 @@ fn server_config_builder_set_hello_callback(
     Installing a client_hello callback will replace any configured certified keys
     and vice versa. Same holds true for the set_certified_keys variant.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (UnsafePointer[ServerConfigBuilder], ClientHelloCallback) -> UInt32
-    ]("rustls_server_config_builder_set_hello_callback")(builder, callback)
+    ]("rustls_server_config_builder_set_hello_callback")(builder, callback))
 
 
 fn client_hello_select_certified_key(
@@ -3266,7 +3266,7 @@ fn client_hello_select_certified_key(
     Return RUSTLS_RESULT_OK if a key was selected and RUSTLS_RESULT_NOT_FOUND
     if none was suitable.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ClientHello],
             UnsafePointer[UnsafePointer[CertifiedKey]],
@@ -3275,7 +3275,7 @@ fn client_hello_select_certified_key(
         ) -> UInt32
     ]("rustls_client_hello_select_certified_key")(
         hello, certified_keys, certified_keys_len, out_key
-    )
+    ))
 
 
 fn server_config_builder_set_persistence(
@@ -3292,10 +3292,10 @@ fn server_config_builder_set_persistence(
     will be passed to the callbacks. Otherwise the userdata param passed to
     the callbacks will be NULL.
     """
-    return _rustls.get_function[
+    return Result(_rustls.get_function[
         fn (
             UnsafePointer[ServerConfigBuilder],
             SessionStoreGetCallback,
             SessionStorePutCallback,
         ) -> UInt32
-    ]("rustls_server_config_builder_set_persistence")(builder, get_cb, put_cb)
+    ]("rustls_server_config_builder_set_persistence")(builder, get_cb, put_cb))
