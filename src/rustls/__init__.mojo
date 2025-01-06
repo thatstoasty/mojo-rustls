@@ -254,7 +254,7 @@ struct ClientConnection:
         pass
 
     fn write_tls_into[
-        lifetime: MutableLifetime
+        lifetime: Origin
     ](inout self, buf: Span[UInt8, lifetime]) raises:
         pass
 
@@ -487,7 +487,7 @@ struct ServerConfigBuilder:
             raise Error("failed to set ignore client order" + str(result.value))
 
     fn set_alpn_protocols[
-        lt: ImmutableLifetime
+        lt: Origin
     ](inout self, protocols: Span[Span[UInt8, lt]]) raises:
         """
         Set the ALPN protocol list to the given protocols.
