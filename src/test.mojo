@@ -26,7 +26,7 @@ fn do_request(
     port: String,
     path: String,
 ) raises:
-    # logger.info("establish TCP connection")
+    logger.info("establish TCP connection")
     var fd = socket(AF_INET, SOCK_STREAM, 0)
     if fd < 0:
         raise Error("Failed to create socket")
@@ -38,6 +38,7 @@ fn do_request(
 
     # Now create the TLS connection with the established TCP socket
     var conn = rls.ClientConnection(client_config, host)
+    logger.info("TLS connection created successfully")
     
     # Set the underlying TCP socket
     # conn.set_socket(fd)
@@ -330,23 +331,28 @@ fn main() raises:
     var cert_path = "/etc/ssl/cert.pem"
     if not os.setenv("CA_FILE", cert_path):
         raise Error("Failed to set CA_FILE environment variable")
-
+    logger.info("Setting up default provider")
     custom_provider = default_provider_with_custom_ciphersuite(
         "TLS13_CHACHA20_POLY1305_SHA256"
     )
     tls_versions = List[UInt16](0x0303, 0x0304)
+    logger.info("Setting up config builder")
     config_builder = rls.ClientConfigBuilder(custom_provider, tls_versions)
+    logger.info("Setting up root cert store builder")
     server_cert_root_store_builder = rls.RootCertStoreBuilder()
     server_cert_root_store_builder.load_roots_from_file(cert_path)
     server_root_cert_store = server_cert_root_store_builder^.build()
+    logger.info("root cert store built successfully")
     server_cert_verifier_builder = rls.WebPkiServerCertVerifierBuilder(
         server_root_cert_store
     )
     server_cert_verifier = server_cert_verifier_builder^.build()
+    logger.info("server cert verifier built successfully")
     config_builder.set_server_verifier(server_cert_verifier)
     alpn = List[Span[UInt8, StaticConstantOrigin]]("http/1.1".as_bytes())
     config_builder.set_alpn_protocols(alpn)
     client_config = config_builder^.build()
+    logger.info("client config built successfully")
     host = "www.google.com"
     port = "443"
     path = "/"
