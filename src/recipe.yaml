@@ -4,23 +4,24 @@ context:
   version: "13.4.2" # this should be changed
 
 package:
-  name: "mojo-rustls-ffi"
-  version: 0.1.0
+  name: "mojo-rustls"
+  version: 0.1.1
 
 source:
-  # - path: ./librustls.dylib
   - path: ../LICENSE
 
 build:
   script:
-    - mkdir -p ${PREFIX}/share/mojo-rustls-ffi
+    - mkdir -p ${PREFIX}/share/mojo-rustls
     - git clone --depth=1 git@github.com:rustls/rustls-ffi.git
-    - cd rustls-ffi && cargo cinstall --library-type=cdylib --destdir=${PREFIX}/share/mojo-rustls-ffi/librustls.dylib
+    - cd rustls-ffi && cargo cinstall --library-type=cdylib --destdir=./output
+    - ls -la output/usr/local/lib
+    - cp output/usr/local/lib/librustls.dylib ${PREFIX}/share/mojo-rustls/librustls.dylib
     - cd .. && rm -R rustls-ffi
 
 about:
-  homepage: https://github.com/rustls/mojo-rustls-ffi
+  homepage: https://github.com/rustls/mojo-rustls
   license: MIT
   license_file: LICENSE
   summary: Rustls FFI bindings - use Rustls from any language
-  repository: https://github.com/rustls/mojo-rustls-ffi
+  repository: https://github.com/rustls/mojo-rustls

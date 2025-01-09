@@ -35,5 +35,3 @@ jobs:
         run: |
           source $HOME/.bash_profile
           magic run tests
-          magic run benchmarks
-          magic run examples
